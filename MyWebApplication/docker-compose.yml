@@ -3,8 +3,29 @@ services:
   db:
     image: postgres:16.1-alpine
     restart: always
-    env_file:
-      - .env
     ports:
       - 5432:5432
     platform: linux/amd64
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  webapp:
+    image: translator-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+volumes:
+  db-data:
+
+networks:
+  app-network:

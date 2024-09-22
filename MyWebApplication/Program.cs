@@ -22,6 +22,22 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
+// Apply automatic migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<DatabaseContext>();
+        context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("An error occurred while migrating the database.");
+        Console.WriteLine(ex.Message);
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
