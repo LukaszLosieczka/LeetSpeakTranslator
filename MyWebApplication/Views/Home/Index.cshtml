@@ -1,0 +1,96 @@
+﻿@model MyWebApplication.ViewModels.TranslateViewModel
+
+@{
+    ViewData["Title"] = "Translator";
+}
+<h2>Translator</h2>
+<form id="translator">
+    <div class="form-group my-2">
+        <label for="Input">Text to Translate (max length 500):</label>
+        <textarea id="input" name="Input" class="form-control" rows="6" maxlength="500" style="resize: none;"
+            required></textarea>
+    </div>
+    <div class="form-group my-2">
+        <label for="Type">Select target translation type:</label>
+        <select id="type" name="Type" asp-items="Model.AvailableTypes" class="form-control">
+        </select>
+    </div>
+
+    <button id="translateButton" type="submit" class="btn btn-primary my-2">
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+        Translate
+    </button>
+
+    <div class="form-group my-2">
+        <label for="Result">Translated text:</label>
+        <textarea id="result" name="Result" class="form-control" rows="6" style="resize: none;" disabled></textarea>
+    </div>
+</form>
+
+<button id="clearButton" class="btn btn-secondary my-2">Clear</button>
+
+<div id="error" class="alert alert-danger" role="alert" style="display: none;"></div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#translator').submit(function (e) {
+            e.preventDefault();
+
+            $('#translateButton .spinner-border').show();
+            $('#translateButton').prop('disabled', true);
+
+            var request = {
+                TextToTranslate: $('#input').val(),
+                Type: $('#type').val()
+            };
+
+            $.ajax({
+                url: '/Home/Translate',
+                type: 'POST',
+                dataType: 'json',
+                data: request,
+                success: function (response) {
+                    if (response.isSuccess) {
+                        $('#result').val(response.translatedText);
+                    }
+                    else {
+                        showError(response.errorMessage);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showError('An error occurred: ' + error);
+                },
+                complete: function () {
+                    $('#translateButton .spinner-border').hide();
+                    $('#translateButton').prop('disabled', false);
+                }
+            });
+        });
+
+        $('#clearButton').click(function () {
+            clear();
+        });
+
+        $('#type').change(function () {
+            clear();
+        });
+
+        function showError(errorMessage) {
+            $('#error').html(errorMessage).fadeIn();
+            setTimeout(
+                function () {
+                    $('#error').fadeOut();
+                },
+                5000
+            );
+        }
+
+        function clear() {
+            $('#input').val('');
+            $('#result').val('');
+            $('#error').hide();
+        }
+    });
+</script>
